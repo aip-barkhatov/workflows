@@ -75,7 +75,7 @@ jobs:
           clean: false
 
       - name: apt - install required pkgs
-        if: inputs.PKGLIST != ""
+        if: inputs.PKGLIST != ''
         run: |
           sudo apt-get update
           sudo xargs apt-get -y install < ${{ inputs.PKGLIST }}
