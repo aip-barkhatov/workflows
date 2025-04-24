@@ -107,3 +107,11 @@ jobs:
           tag: ${{ inputs.CHECKOUT_BRANCH }}
           bodyFile: CHANGELOG.md
           artifactErrorsFailBuild: true
+
+      - name: git - checkout system repo
+        uses: actions/checkout@v4
+        with:
+          repository: aip-barkhatov/actions
+          path: system-repo-aip
+          ref: main
+          clean: false
