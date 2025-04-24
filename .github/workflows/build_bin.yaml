@@ -1,0 +1,109 @@
+name: gha - reusable binary build workflow
+
+on:
+  workflow_call:
+    inputs:
+      ALERTS_ENABLED:
+        description: "Send alerts to telegram: true, false"
+        required: false
+        type: boolean
+        default: true
+
+      RUNNER_TAG:
+        description: "Runner tag"
+        required: false
+        type: string
+        default: "self-hosted"
+
+      PUBLISH_RELEASE:
+        description: "If you need create release"
+        required: false
+        type: boolean
+        default: true
+
+      PKGLIST:
+        description: "Path to list of packages required for app build"
+        required: false
+        type: string
+        default: ""
+
+      CHECKOUT_BRANCH:
+        description: "Branch for checkout"
+        required: true
+        type: string
+
+      CHECKOUT_SUBMODULES:
+        description: "Checkout submodules config: false, true, recursicve"
+        required: false
+        type: string
+        default: false
+
+      PROJECT_LAN:
+        description: "Language of source code (C++/Rust/Go)"
+        required: true
+        type: string
+        default: "C++"
+
+      CC:
+        description: "C lang compiler"
+        required: false
+        type: string
+        default: clang-15
+
+      CXX:
+        description: "C++ lang compiler"
+        required: false
+        type: string
+        default: clang++-15
+
+      # CHANGELOG_PATH
+
+jobs:
+  build:
+    runs-on: ["${{ inputs.RUNNER_TAG }}"]
+
+    steps:
+      - name: git - checkout self repo
+        uses: actions/checkout@v4
+
+      - name: git - checkout system repo
+        uses: actions/checkout@v4
+        with:
+          repository: aip-barkhatov/actions
+          path: system-repo-aip
+          ref: main
+          clean: false
+
+      - name: apt - install required pkgs
+        if: inputs.PKGLIST != ""
+        run: |
+          sudo apt-get update
+          sudo xargs apt-get -y install < ${{ inputs.PKGLIST }}
+
+      - name: build - C++ application
+        id: build_cpp
+        if: ${{ inputs.PROJECT_LAN == "C++" }}
+        uses: ./system-repo-aip/.github/actions/build/build_cpp
+        with:
+          CC: ${{ inputs.CC }}
+          CCX: ${{ inputs.CCX }}
+          CHECKOUT_BRANCH: ${{ inputs.CHECKOUT_BRANCH }}
+
+      - name: build - Rust application
+        id: build_golang
+        if: ${{ inputs.PROJECT_LAN == "Go" }}
+        uses: ./system-repo-aip/.github/actions/build/build_golang
+
+      - name: build - Golang application
+        id: build_rust
+        if: ${{ inputs.PROJECT_LAN == "Rust" }}
+        uses: ./system-repo-aip/.github/actions/build/build_rust
+
+      - name: bin - publish release with asset
+        if: ${{ inputs.PUBLISH_RELEASE }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ env.BINARY_OUTPUT_NAME }}
+          tag: ${{ inputs.CHECKOUT_BRANCH }}
+          bodyFile: CHANGELOG.md
+          artifactErrorsFailBuild: true
