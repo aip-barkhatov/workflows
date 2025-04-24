@@ -82,7 +82,7 @@ jobs:
 
       - name: build - C++ application
         id: build_cpp
-        if: ${{ inputs.PROJECT_LAN == "C++" }}
+        if: inputs.PROJECT_LAN == 'C++'
         uses: ./system-repo-aip/.github/actions/build/build_cpp
         with:
           CC: ${{ inputs.CC }}
