@@ -91,16 +91,16 @@ jobs:
 
       - name: build - Rust application
         id: build_golang
-        if: ${{ inputs.PROJECT_LAN == "Go" }}
+        if: inputs.PROJECT_LAN == 'Go'
         uses: ./system-repo-aip/.github/actions/build/build_golang
 
       - name: build - Golang application
         id: build_rust
-        if: ${{ inputs.PROJECT_LAN == "Rust" }}
+        if: inputs.PROJECT_LAN == 'Rust'
         uses: ./system-repo-aip/.github/actions/build/build_rust
 
       - name: bin - publish release with asset
-        if: ${{ inputs.PUBLISH_RELEASE }}
+        if: inputs.PUBLISH_RELEASE
         uses: ncipollo/release-action@v1
         with:
           artifacts: ${{ env.BINARY_OUTPUT_NAME }}
